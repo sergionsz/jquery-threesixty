@@ -21,3 +21,18 @@
 	border-radius: 3px;
 	background-size: cover;
 }
+
+#ts-close {
+	font-size: 180%;
+	color: #B4B4B4;
+	position: absolute;
+	top: 1%;
+	right: 1%;
+	text-decoration: none;
+	cursor: hand;
+}
+
+#ts-close:hover {
+	font-weight: bold;
+	color: #FFF;
+}

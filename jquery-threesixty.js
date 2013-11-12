@@ -40,11 +40,15 @@
 			fps: 50,
 		}, options);
 		
-		/* Initialize by adding the background and container divs */
+		/* Initialize by adding the background and container divs 
+		* if they don't already exist */
 		var prefix = settings.cssPrefix;
-		$('body').prepend('<div id="' + prefix +'-background"></div>');
+		if ($("#" + prefix +"-background").length == 0){		
+			$('body').prepend('<div id="' + prefix +'-background">\
+			<span id="' + prefix + '-close">&times;</span>\
+			</div><div id="' + prefix + '-container"></div>');
+		}
 		var background = $('#' + prefix +'-background')
-		background.after('<div id="' + prefix + '-container"></div>');
 		var container = $('#' + prefix +'-container');
 		/* The box will be the whole thing: background + container */
 		var box = background.add(container);
@@ -78,16 +82,24 @@
 			});
 			
 			/* Arm the cursor on mousedown */
-			container.mousedown(function (e) {
+			container.bind("mousedown touchstart", function (e) {
 				cursorX1 = e.pageX;
+				if (cursorX1 == 0){
+					e.preventDefault();
+					cursorX1 = event.touches[0].clientX;
+				}
 				armed = true;
 				e.preventDefault();
 			});
 			
 			/* Move the image on mousemove (when armed) */
-			container.mousemove(function (e) {
+			container.bind("mousemove touchmove",function (e) {
 				if (armed) {
 					var cursorX2 = e.pageX;
+					if (cursorX2 == 0){
+						e.preventDefault();
+						cursorX2 = event.touches[0].clientX;
+					}
 					if (prevX === undefined) { prevX = cursorX2; }
 					
 					offset += cursorX2 - cursorX1;
@@ -103,7 +115,7 @@
 			});
 			
 			/* Disarm on mouseleave or mouseup */
-			container.bind('mouseleave mouseup', function () {
+			container.bind('mouseleave mouseup touchend touchcancel', function () {
 				armed = false;
 			});
 			
