@@ -73,10 +73,10 @@
 			
 			/* Show threesixty on click */
 			link.click(function (e) {
-				container.css(
-					'background-image',
-					'url('+link.attr('href')+')'
-				);
+				container.css({
+					'background-image': 'url('+link.attr('href')+')',
+					'background-position': '0px 0px'
+				});
 				box.show();
 				e.preventDefault();
 			});
@@ -102,6 +102,7 @@
 					}
 					if (prevX === undefined) { prevX = cursorX2; }
 					
+					offset = parseFloat(container.css('background-position').split(' ')[0].replace('px',''));
 					offset += cursorX2 - cursorX1;
 					cursorX1=cursorX2;
 					
@@ -139,8 +140,9 @@
 				
 				if (!armed && velocity) {
 					velocity /= friction;
+					offset = parseFloat(container.css('background-position').split(' ')[0].replace('px',''));
 					offset -= velocity;
-					container.css('background-position', Math.floor(offset));
+					container.css('background-position', offset);
 					if (Math.abs(velocity) < 0.1) {
 						velocity = 0;
 					}
