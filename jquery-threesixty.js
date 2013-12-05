@@ -23,6 +23,7 @@
 * 	
 * licence : GPL
 ===================================================================== */
+init = false;
 (function ($) {
 	$.fn.threesixty = function (options) {
 		var settings = $.extend({
@@ -57,30 +58,8 @@
 		container.css('height', settings.height + 'px');
 		background.css('opacity', settings.opacity);
 		
-		return this.each(function () {
-			var link = $(this);
-			var cursorX1 = 0;
-			var velocity = 0;
-			var armed;
-			var offset = 0;
-			var tick;
-			var prevX;
-			/* This should be really small, so we divide it by 100
-			 * Values lesser than 1 act like a negative friction,
-			 * so we should add 1  */
-			var friction = (settings.friction/100)+1;
-			var period = 1000/settings.fps;
-			
-			/* Show threesixty on click */
-			link.click(function (e) {
-				container.css({
-					'background-image': 'url('+link.attr('href')+')',
-					'background-position': '0px 0px'
-				});
-				box.show();
-				e.preventDefault();
-			});
-			
+		/* Add all bindings (must be done once and once only!) */
+		function addBindings() {
 			/* Arm the cursor on mousedown */
 			container.bind("mousedown touchstart", function (e) {
 				cursorX1 = e.pageX;
@@ -96,17 +75,17 @@
 			container.bind("mousemove touchmove",function (e) {
 				if (armed) {
 					var cursorX2 = e.pageX;
-					if (cursorX2 == 0){
+					/*if (cursorX2 == 0){
 						e.preventDefault();
 						cursorX2 = event.touches[0].clientX;
-					}
-					if (prevX === undefined) { prevX = cursorX2; }
+					}*/
+					if (!prevX) { prevX = cursorX2; }
 					
-					offset = parseFloat(container.css('background-position').split(' ')[0].replace('px',''));
-					offset += cursorX2 - cursorX1;
+					var bgpx = parseFloat(container.css('background-position').split(' ')[0].replace('px',''));
+					offset = cursorX2 - cursorX1;
 					cursorX1=cursorX2;
 					
-					container.css('background-position', offset);
+					container.css('background-position', bgpx + offset);
 					
 					/* Calculate velocity based on
 					 * distance from last position */
@@ -133,23 +112,51 @@
 			var close = function () {
 				box.hide();
 			}
+		}
+		
+		return this.each(function () {
+			var link = $(this);
+			var cursorX1 = 0;
+			velocity = 0;
+			armed = false;
+			var offset = 0;
+			var tick;
+			prevX = false;
+			/* This should be really small, so we divide it by 100
+			 * Values lesser than 1 act like a negative friction,
+			 * so we should add 1  */
+			var friction = (settings.friction/100)+1;
+			var period = 1000/settings.fps;
 			
-			/* This executes fps times per second
-			 * Reduces velocity based on friction */
-			tick = function () {
-				
-				if (!armed && velocity) {
-					velocity /= friction;
-					offset = parseFloat(container.css('background-position').split(' ')[0].replace('px',''));
-					offset -= velocity;
-					container.css('background-position', offset);
-					if (Math.abs(velocity) < 0.1) {
-						velocity = 0;
+			/* Show threesixty on click */
+			link.click(function (e) {
+				container.css({
+					'background-image': 'url('+link.attr('href')+')',
+					'background-position': '0px 0px'
+				});
+				box.show();
+				e.preventDefault();
+			});
+			
+			/* Add bindings once */
+			if(!init){
+				addBindings();
+				/* This executes fps times per second
+				 * Reduces velocity based on friction */
+				tick = function () {
+					if (!armed && velocity) {
+						velocity /= friction;
+						var bgpx = parseFloat(container.css('background-position').split(' ')[0].replace('px',''));
+						container.css('background-position', bgpx + (offset-velocity));
+						if (Math.abs(velocity) < 0.1) {
+							velocity = 0;
+						}
 					}
-				}
-			};
+				};
 
-			setInterval(tick,period);
+				setInterval(tick,period);
+				init = true;
+			}
 			
 		});
 	};
